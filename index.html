@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐱 Kitty Valentine Runner 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #FFE5EC 0%, #ace5f0 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            position: relative;
+            background: linear-gradient(to bottom, #80dddd 0%, #4ebff3 50%, #4fdbc9 100%);
+            border: 5px solid #2300ec;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.35);
+        }
+
+        /* Corazones flotantes de fondo */
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.35;
+            animation: floatHeart 10s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes floatHeart {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+
+        #ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, #eeb76e 0%, #cfa107 100%);
+            border-top: 3px solid #00000091;
+        }
+
+        #kitty {
+            position: absolute;
+            bottom: 100px;
+            left: 15px;
+            width: 50px;
+            height: 50px;
+            font-size: 50px;
+            transition: bottom 0.35s;
+            z-index: 10;
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 100px;
+            font-size: 20px;
+            animation: moveObstacle linear;
+        }
+
+        @keyframes moveObstacle {
+            from {
+                right: -50px;
+            }
+
+            to {
+                right: 100%;
+            }
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #1ca0a5;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 3px solid #2635c2;
+        }
+
+        #instructions {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #instructions>div {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(20px, 5vw, 50px);
+            border-radius: 20px;
+            border: 4px solid #334bb8;
+            max-width: 90%;
+            width: auto;
+            margin: auto;
+        }
+
+        #instructions h2 {
+            color: #07049c;
+            margin-bottom: 15px;
+            font-size: clamp(24px, 5vw, 32px);
+        }
+
+        #instructions p {
+            color: #00025c;
+            margin: 10px 0;
+            font-size: clamp(16px, 3vw, 18px);
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #8ab9ffcf, #ffffff);
+            color: rgb(0, 0, 0);
+            border: none;
+            padding: clamp(10px, 2vw, 15px) clamp(25px, 5vw, 40px);
+            font-size: clamp(16px, 3vw, 20px);
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgb(105, 237, 255);
+            transition: all 0.35s;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #gameOver {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #gameOver>div {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(20px, 5vw, 40px);
+            border-radius: 20px;
+            border: 4px solid #FF69B4;
+            max-width: 90%;
+            width: auto;
+            margin: auto;
+        }
+
+        #gameOver h2 {
+            color: #FF1493;
+            margin-bottom: 15px;
+            font-size: clamp(28px, 5vw, 36px);
+        }
+
+        /* Carta de San Valentín */
+        #valentineCard {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        #valentineCard>div {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.98);
+            padding: clamp(20px, 5vw, 50px);
+            border-radius: 30px;
+            border: 5px solid #001fa7;
+            box-shadow: 0 15px 50px rgba(255, 20, 147, 0.5);
+            animation: cardAppear 0.5s forwards;
+            max-width: 90%;
+            width: auto;
+            margin: auto;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #valentineCard h1 {
+            color: #002066;
+            font-size: clamp(24px, 6vw, 48px);
+            margin-bottom: clamp(10px, 3vw, 20px);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        #valentineCard p {
+            color: #6256d1;
+            font-size: clamp(18px, 4vw, 28px);
+            margin: clamp(10px, 2vw, 20px) 0;
+        }
+
+        .answer-btn {
+            margin: clamp(10px, 3vw, 20px) clamp(5px, 2vw, 10px);
+            font-size: clamp(18px, 4vw, 24px);
+            padding: clamp(15px, 3vw, 20px) clamp(30px, 6vw, 50px);
+            transition: all 0.35s;
+        }
+
+        #yesBtn {
+            background: linear-gradient(to bottom, #ff68b3, #FF1493);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 10px 30px rgba(255, 20, 147, 0.8);
+            }
+        }
+
+        #noBtn {
+            background: linear-gradient(to bottom, #a1999b, #c09ea9);
+        }
+
+        /* Mensaje final */
+        #finalMessage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        #finalMessage>div {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.98);
+            padding: clamp(30px, 6vw, 60px);
+            border-radius: 30px;
+            border: 5px solid #000000;
+            box-shadow: 0 15px 50px rgba(211, 57, 139, 0.5);
+            max-width: 90%;
+            width: auto;
+            margin: auto;
+        }
+
+        #finalMessage h1 {
+            color: #1b29a3;
+            font-size: clamp(28px, 6vw, 42px);
+            margin-bottom: clamp(10px, 3vw, 20px);
+        }
+
+        #finalMessage p {
+            color: #2f22a0;
+            font-size: clamp(18px, 4vw, 24px);
+        }
+
+        /* Animación de corazones */
+        .heart-particle {
+            position: absolute;
+            font-size: 30px;
+            pointer-events: none;
+            animation: floatUp 2s forwards;
+            z-index: 500;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-200px) rotate(360deg);
+            }
+        }
+
+        /* Animación del gatito */
+        @keyframes kittyJump {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(-10deg);
+            }
+        }
+
+        .jumping {
+            animation: kittyJump 0.35s;
+        }
+
+        /* Escenario final romántico */
+        .romantic-bg {
+            background: linear-gradient(to bottom, #FFB6C1 0%, #FFA07A 50%, #FF69B4 100%);
+        }
+
+        .sun {
+            position: absolute;
+            top: 50px;
+            right: 100px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 30px #FFD700;
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            #gameContainer {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+                border: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameContainer">
+        <!-- Corazones flotantes de fondo -->
+        <div class="floating-heart" style="top: 20%; left: 10%;">💕</div>
+        <div class="floating-heart" style="top: 40%; left: 80%;">💖</div>
+        <div class="floating-heart" style="top: 60%; left: 30%;">💗</div>
+        <div class="floating-heart" style="top: 30%; left: 60%;">💝</div>
+
+        <!-- Puntuación -->
+        <div id="score">Distancia: 0m</div>
+
+        <!-- Suelo -->
+        <div id="ground"></div>
+
+        <!-- Gatito -->
+        <div id="kitty">🐱</div>
+
+        <!-- Pantalla de inicio -->
+        <div id="instructions">
+            <div>
+                <h2>Hola mi amor! 💕</h2>
+                <p>¡Espeor que te diviertas...</p>
+                <p>Ayuda al gatito a llegar a su destino!</p>
+                <p><strong>Presiona ESPACIO, CLICK o TOCA la pantalla para saltar</strong></p>
+                <p>Evita los obstáculos...</p>
+                <button class="btn" onclick="startGame()">¡Comenzar!</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Game Over -->
+        <div id="gameOver">
+            <div>
+                <h2>¡Oh no! 😿</h2>
+                <p id="gameOverText">El gatito tropezó...</p>
+                <button class="btn" onclick="restartGame()">Intentar de nuevo 🐾</button>
+            </div>
+        </div>
+
+        <!-- Carta de San Valentín -->
+        <div id="valentineCard">
+            <div>
+                <h1>¿Quieres ser mi San Valentín? 🐱</h1>
+                <p>El gatito llegó hasta aquí solo por ti...</p>
+                <div>
+                    <button class="btn answer-btn" id="yesBtn" onclick="handleYes()">Claro que síiii!</button>
+                    <button class="btn answer-btn" id="noBtn" onclick="handleNo()">No.</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje final -->
+        <div id="finalMessage">
+            <div>
+                <h1>El 14 tenemos una cita💌</h1>
+                <p>Te amo! 🐱💖</p>
+                <p style="font-size: clamp(40px, 10vw, 60px); margin: clamp(10px, 3vw, 20px) 0;">😻</p>
+                <button class="btn" onclick="location.reload()">Ver de nuevo </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables del juego
+        let gameStarted = false;
+        let gameEnded = false;
+        let isJumping = false;
+        let score = 0;
+        let speed = 2000;
+        let obstacleInterval;
+        let scoreInterval;
+        let obstacles = [];
+        let noClickCount = 0;
+
+        const kitty = document.getElementById('kitty');
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreDisplay = document.getElementById('score');
+        const instructions = document.getElementById('instructions');
+        const gameOver = document.getElementById('gameOver');
+        const valentineCard = document.getElementById('valentineCard');
+        const finalMessage = document.getElementById('finalMessage');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+
+        // Emojis de obstáculos
+        const obstacleEmojis = ['📦', '🧶', '🌸', '🎁', '🪴'];
+
+        // Iniciar juego
+        function startGame() {
+            instructions.style.display = 'none';
+            gameStarted = true;
+            score = 0;
+            speed = 2000;
+            noClickCount = 0;
+
+            // Generar obstáculos
+            obstacleInterval = setInterval(createObstacle, speed);
+
+            // Actualizar puntuación
+            scoreInterval = setInterval(() => {
+                if (!gameEnded) {
+                    score += 1;
+                    scoreDisplay.textContent = `Distancia: ${score}m`;
+
+                    // Aumentar velocidad gradualmente
+                    if (score % 20 === 0 && speed > 1000) {
+                        speed -= 100;
+                        clearInterval(obstacleInterval);
+                        obstacleInterval = setInterval(createObstacle, speed);
+                    }
+
+                    // Victoria a los 100m
+                    if (score >= 100) {
+                        victory();
+                    }
+                }
+            }, 100);
+        }
+
+        // Crear obstáculo
+        function createObstacle() {
+            if (gameEnded) return;
+
+            const obstacle = document.createElement('div');
+            obstacle.className = 'obstacle';
+            obstacle.textContent = obstacleEmojis[Math.floor(Math.random() * obstacleEmojis.length)];
+            obstacle.style.animationDuration = (speed / 1000) + 's';
+            gameContainer.appendChild(obstacle);
+            obstacles.push(obstacle);
+
+            // Remover después de la animación
+            setTimeout(() => {
+                if (obstacle.parentNode) {
+                    obstacle.remove();
+                    obstacles = obstacles.filter(o => o !== obstacle);
+                }
+            }, speed);
+        }
+
+        // Saltar
+        function jump() {
+            if (isJumping || !gameStarted || gameEnded) return;
+
+            isJumping = true;
+            kitty.classList.add('jumping');
+
+            // Animación de salto - MÁS ALTO Y RÁPIDO
+            let jumpHeight = 0;
+            const jumpInterval = setInterval(() => {
+                if (jumpHeight >= 500) {
+                    clearInterval(jumpInterval);
+                    // Caer - MÁS RÁPIDO
+                    const fallInterval = setInterval(() => {
+                        if (jumpHeight <= 0) {
+                            clearInterval(fallInterval);
+                            kitty.style.bottom = '100px';
+                            isJumping = false;
+                            kitty.classList.remove('jumping');
+                        } else {
+                            jumpHeight -= 12; // Velocidad de caída aumentada
+                            kitty.style.bottom = (100 + jumpHeight) + 'px';
+                        }
+                    }, 10); // Era 20ms, ahora 10ms
+                } else {
+                    jumpHeight += 12; // Velocidad de subida aumentada
+                    kitty.style.bottom = (100 + jumpHeight) + 'px';
+                }
+            }, 10); // Era 20ms, ahora 10ms
+
+            // Sonido de salto (simulado con vibración en móvil)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        // Detectar colisiones
+        setInterval(() => {
+            if (!gameStarted || gameEnded) return;
+
+            obstacles.forEach(obstacle => {
+                const obstacleRect = obstacle.getBoundingClientRect();
+                const kittyRect = kitty.getBoundingClientRect();
+
+                // Detección de colisión
+                if (
+                    obstacleRect.left < kittyRect.right &&
+                    obstacleRect.right > kittyRect.left &&
+                    obstacleRect.bottom > kittyRect.top &&
+                    obstacleRect.top < kittyRect.bottom
+                ) {
+                    endGame();
+                }
+            });
+        }, 50);
+
+        // Terminar juego
+        function endGame() {
+            gameEnded = true;
+            clearInterval(obstacleInterval);
+            clearInterval(scoreInterval);
+            gameOver.style.display = 'flex';
+            document.getElementById('gameOverText').textContent = `El gatito tropezó... Llegaste a ${score}m 😿`;
+
+            // Limpiar obstáculos
+            obstacles.forEach(o => o.remove());
+            obstacles = [];
+        }
+
+        // Reiniciar juego
+        function restartGame() {
+            gameOver.style.display = 'none';
+            gameEnded = false;
+            gameStarted = false;
+            kitty.style.bottom = '100px';
+            yesBtn.style.fontSize = '24px';
+            yesBtn.style.padding = '20px 50px';
+            noBtn.style.fontSize = '24px';
+            noBtn.style.padding = '20px 50px';
+            startGame();
+        }
+
+        // Victoria - mostrar escenario romántico
+        function victory() {
+            gameEnded = true;
+            clearInterval(obstacleInterval);
+            clearInterval(scoreInterval);
+
+            // Cambiar fondo a romántico
+            gameContainer.classList.add('romantic-bg');
+
+            // Agregar sol
+            const sun = document.createElement('div');
+            sun.className = 'sun';
+            gameContainer.appendChild(sun);
+
+            // Limpiar obstáculos
+            obstacles.forEach(o => o.remove());
+            obstacles = [];
+
+            // Mostrar corazón gigante en el centro
+            setTimeout(() => {
+                const heart = document.createElement('div');
+                heart.style.position = 'absolute';
+                heart.style.fontSize = '150px';
+                heart.textContent = '💝';
+                heart.style.left = '10%';
+                heart.style.bottom = '100px';
+                heart.style.transform = 'translateX(-50%)';
+                heart.style.animation = 'heartbeat 1s infinite';
+                gameContainer.appendChild(heart);
+
+                // Mover gatito hacia el corazón
+                kitty.style.transition = 'left 2s';
+                kitty.style.left = '45%';
+
+                // Mostrar carta después de 2 segundos
+                setTimeout(() => {
+                    scoreDisplay.style.display = 'none';
+                    valentineCard.style.display = 'flex';
+                }, 2000);
+            }, 500);
+        }
+
+        // Manejar respuesta "No"
+        function handleNo() {
+            noClickCount++;
+
+            // Reducir botón "No" y agrandar botón "Sí"
+            const noSize = Math.max(12, 24 - noClickCount * 2);
+            const yesPadding = 20 + noClickCount * 5;
+            const yesSize = 24 + noClickCount * 2;
+
+            noBtn.style.fontSize = noSize + 'px';
+            noBtn.style.padding = Math.max(5, 20 - noClickCount * 2) + 'px ' + Math.max(10, 50 - noClickCount * 5) + 'px';
+
+            yesBtn.style.fontSize = yesSize + 'px';
+            yesBtn.style.padding = yesPadding + 'px ' + (50 + noClickCount * 10) + 'px';
+
+            // Vibrar en móvil
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 100, 50]);
+            }
+        }
+
+        // Manejar respuesta "Sí"
+        function handleYes() {
+            valentineCard.style.display = 'none';
+            finalMessage.style.display = 'flex';
+
+            // 🔥 ENVIAR MENSAJE A WHATSAPP 🔥
+            const numeroWhatsApp = "51960879739"; // ← CAMBIA ESTE NÚMERO
+            const mensaje = "¡SÍ acepto ser tu San Valentín!<3 Nos vemos el 14 mi amor!!";
+
+            // Codificar el mensaje para URL
+            const mensajeCodificado = encodeURIComponent(mensaje);
+
+            // Crear el link de WhatsApp
+            const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+            // Abrir WhatsApp
+            window.open(urlWhatsApp, '_blank');
+
+            valentineCard.style.display = 'none';
+            finalMessage.style.display = 'flex';
+
+            // Explosión de corazones
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    createHeartParticle();
+                }, i * 100);
+            }
+
+            // Gatito feliz saltando
+            let jumpCount = 0;
+            const happyJump = setInterval(() => {
+                kitty.style.transition = 'bottom 0.35s';
+                kitty.style.bottom = jumpCount % 2 === 0 ? '150px' : '100px';
+                jumpCount++;
+                if (jumpCount > 10) {
+                    clearInterval(happyJump);
+                    kitty.style.bottom = '100px';
+                }
+            }, 300);
+        }
+
+        // Crear partícula de corazón
+        function createHeartParticle() {
+            const heart = document.createElement('div');
+            heart.className = 'heart-particle';
+            heart.textContent = ['💕', '💖', '💗', '💝', '💘'][Math.floor(Math.random() * 5)];
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.bottom = '0';
+            gameContainer.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 2000);
+        }
+
+        // Eventos de teclado y mouse
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        gameContainer.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('btn') && !e.target.id.includes('Btn')) {
+                jump();
+            }
+        });
+
+        // Touch para móviles
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!e.target.classList.contains('btn') && !e.target.id.includes('Btn')) {
+                e.preventDefault();
+                jump();
+            }
+        });
+    </script>
+</body>
+
+</html>
